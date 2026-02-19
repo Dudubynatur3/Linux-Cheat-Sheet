@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linux Commands — Interactive Animated Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,700;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0c0f;
+  --surface: #111418;
+  --surface2: #181c22;
+  --border: #1e2530;
+  --green: #4ade80;
+  --green-dim: #166534;
+  --cyan: #22d3ee;
+  --amber: #fbbf24;
+  --red: #f87171;
+  --purple: #a78bfa;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --prompt-color: #4ade80;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* CUSTOM CURSOR */
+.cursor {
+  width: 10px; height: 10px;
+  background: var(--green);
+  border-radius: 50%;
+  position: fixed;
+  top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s ease;
+  box-shadow: 0 0 20px var(--green);
+}
+.cursor-ring {
+  width: 32px; height: 32px;
+  border: 1px solid rgba(74,222,128,0.4);
+  border-radius: 50%;
+  position: fixed;
+  top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: all 0.2s ease;
+}
+
+/* SCANLINES */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 9000;
+}
+
+/* HEADER */
+header {
+  padding: 2rem 3rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(10,12,15,0.95);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.header-prompt {
+  color: var(--green);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.header-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, var(--green), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-badge {
+  margin-left: auto;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 0.3rem 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.badge-dot {
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse-green 2s infinite;
+}
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* HERO */
+.hero {
+  padding: 5rem 3rem 3rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(74,222,128,0.06) 0%, transparent 70%);
+}
+.hero-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 1rem;
+}
+.hero-heading {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+}
+.hero-heading span { color: var(--green); }
+
+.hero-sub {
+  font-size: 0.8rem;
+  color: var(--muted);
+  max-width: 480px;
+  line-height: 1.8;
+  margin-bottom: 3rem;
+}
+
+/* ANIMATED TERMINAL HERO */
+.terminal-hero {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  max-width: 700px;
+  margin-bottom: 4rem;
+  overflow: hidden;
+}
+.terminal-bar {
+  background: var(--surface2);
+  padding: 0.7rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: #f87171; }
+.dot-y { background: #fbbf24; }
+.dot-g { background: #4ade80; }
+.term-title { font-size: 0.65rem; color: var(--muted); margin-left: 0.5rem; }
+.terminal-body { padding: 1.2rem 1.5rem; font-size: 0.8rem; line-height: 1.9; min-height: 180px; }
+.line-prompt { color: var(--green); }
+.line-cmd { color: var(--text); }
+.line-out { color: var(--muted); }
+.line-out.success { color: var(--green); }
+.line-out.info { color: var(--cyan); }
+.line-out.warn { color: var(--amber); }
+.blink-cursor {
+  display: inline-block;
+  width: 8px; height: 14px;
+  background: var(--green);
+  animation: blink 1s step-end infinite;
+  vertical-align: -2px;
+  margin-left: 2px;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* NAV TABS */
+.nav-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 3rem;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.tab-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.2s;
+  letter-spacing: 0.05em;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+  color: var(--green);
+  border-bottom-color: var(--green);
+}
+
+/* CONTENT PANELS */
+.panel { display: none; padding: 3rem; }
+.panel.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+.section-desc {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-bottom: 2rem;
+  line-height: 1.8;
+}
+
+/* COMMAND CARDS GRID */
+.cmd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 3rem;
+}
+.cmd-card {
+  background: var(--surface);
+  padding: 1.4rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.cmd-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--green);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.cmd-card:hover {
+  background: var(--surface2);
+}
+.cmd-card:hover::before { opacity: 1; }
+.cmd-card.active {
+  background: rgba(74,222,128,0.05);
+}
+.cmd-card.active::before { opacity: 1; }
+
+.cmd-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 0.3rem;
+}
+.cmd-desc {
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 0.8rem;
+}
+.cmd-example {
+  font-size: 0.7rem;
+  color: var(--cyan);
+  background: rgba(34,211,238,0.06);
+  padding: 0.3rem 0.6rem;
+  border-left: 2px solid var(--cyan);
+}
+.cmd-tag {
+  display: inline-block;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--amber);
+  border: 1px solid rgba(251,191,36,0.3);
+  padding: 0.15rem 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+/* DEMO TERMINAL */
+.demo-terminal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-top: 2rem;
+  overflow: hidden;
+}
+.demo-header {
+  background: var(--surface2);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.demo-title { font-size: 0.65rem; color: var(--muted); margin-left: 0.5rem; }
+.demo-body { padding: 1.2rem 1.5rem; font-size: 0.78rem; line-height: 2; min-height: 200px; }
+.play-btn {
+  background: none;
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+  margin-left: auto;
+  letter-spacing: 0.1em;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.play-btn:hover {
+  background: var(--green);
+  color: var(--bg);
+}
+
+/* FILESYSTEM VISUALIZER */
+.fs-tree {
+  font-size: 0.78rem;
+  line-height: 2;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.fs-dir { color: var(--cyan); font-weight: 700; }
+.fs-file { color: var(--text); }
+.fs-link { color: var(--purple); }
+.fs-exec { color: var(--green); }
+.fs-indent { padding-left: 1.5rem; }
+
+/* PERMISSIONS VISUALIZER */
+.perm-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  max-width: 500px;
+  margin: 1rem 0;
+}
+.perm-cell {
+  background: var(--surface);
+  padding: 1rem;
+  text-align: center;
+}
+.perm-who {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.perm-bits {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.perm-r { color: var(--green); }
+.perm-w { color: var(--amber); }
+.perm-x { color: var(--cyan); }
+.perm-dash { color: var(--border); }
+.perm-num {
+  font-size: 0.7rem;
+  color: var(--purple);
+  margin-top: 0.3rem;
+}
+
+/* PIPE VISUALIZER */
+.pipe-flow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  margin: 1rem 0;
+}
+.pipe-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 0.7rem 1.2rem;
+  font-size: 0.75rem;
+}
+.pipe-box .cmd { color: var(--green); }
+.pipe-box .arg { color: var(--cyan); }
+.pipe-arrow {
+  padding: 0 0.8rem;
+  color: var(--amber);
+  font-size: 1.2rem;
+}
+.pipe-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.pipe-output {
+  background: rgba(74,222,128,0.08);
+  border: 1px solid rgba(74,222,128,0.3);
+  padding: 0.7rem 1.2rem;
+  font-size: 0.75rem;
+  color: var(--green);
+}
+
+/* QUIZ SECTION */
+.quiz-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 2rem;
+  margin-bottom: 1rem;
+}
+.quiz-q {
+  font-size: 0.85rem;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+  line-height: 1.8;
+}
+.quiz-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+.quiz-opt {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+.quiz-opt:hover { border-color: var(--cyan); color: var(--cyan); }
+.quiz-opt.correct { border-color: var(--green); color: var(--green); background: rgba(74,222,128,0.08); }
+.quiz-opt.wrong { border-color: var(--red); color: var(--red); background: rgba(248,113,113,0.08); }
+.quiz-feedback {
+  margin-top: 1rem;
+  font-size: 0.72rem;
+  padding: 0.8rem 1rem;
+  border-left: 3px solid var(--green);
+  color: var(--muted);
+  display: none;
+  line-height: 1.7;
+}
+.quiz-score {
+  font-family: 'Syne', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--green);
+  margin-bottom: 0.3rem;
+}
+
+/* CHEATSHEET */
+.cheat-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+}
+.cheat-table th {
+  background: var(--surface2);
+  color: var(--amber);
+  font-weight: 700;
+  padding: 0.8rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.6rem;
+}
+.cheat-table td {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.6;
+}
+.cheat-table tr:hover td { background: var(--surface2); }
+.cheat-table td:first-child { color: var(--green); font-weight: 700; white-space: nowrap; }
+.cheat-table td:nth-child(2) { color: var(--muted); }
+.cheat-table td:nth-child(3) { color: var(--cyan); font-size: 0.68rem; }
+
+/* VIDEO LINKS */
+.video-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.video-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s;
+  display: block;
+  position: relative;
+}
+.video-card:hover {
+  border-color: var(--cyan);
+  transform: translateY(-2px);
+}
+.video-num {
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgba(74,222,128,0.15);
+  font-family: 'Syne', sans-serif;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+.video-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 0.4rem;
+}
+.video-title {
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+.video-meta { font-size: 0.65rem; color: var(--muted); }
+
+/* ANIMATED BARS */
+.progress-bar {
+  height: 2px;
+  background: var(--border);
+  margin: 0.5rem 0 1.2rem;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--cyan));
+  width: 0;
+  animation: fillBar 1s ease forwards;
+}
+@keyframes fillBar { to { width: var(--w, 70%); } }
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  header { padding: 1.5rem; }
+  .hero { padding: 3rem 1.5rem 2rem; }
+  .nav-tabs { padding: 0 1.5rem; }
+  .panel { padding: 2rem 1.5rem; }
+  .quiz-options { grid-template-columns: 1fr; }
+  .pipe-flow { flex-direction: column; gap: 0.5rem; }
+  .pipe-arrow { transform: rotate(90deg); }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- HEADER -->
+<header>
+  <span class="header-prompt">user@linux:~$</span>
+  <h1 class="header-title">Linux Commands Guide</h1>
+  <div class="header-badge">
+    <div class="badge-dot"></div>
+    Interactive · Animated
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-label">// Based on the Linux Commands for Beginners Series</div>
+  <h2 class="hero-heading">Master the<br><span>Terminal.</span></h2>
+  <p class="hero-sub">An animated, hands-on guide covering navigation, file management, permissions, package management, bash scripting, and more — drawn from the 20-part Linux Commands for Beginners course.</p>
+
+  <div class="terminal-hero">
+    <div class="terminal-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <span class="term-title">bash — 80×24</span>
+    </div>
+    <div class="terminal-body" id="heroTerminal">
+      <!-- typed by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- NAV TABS -->
+<nav class="nav-tabs">
+  <button class="tab-btn active" onclick="showPanel('navigation')">01 · Navigation</button>
+  <button class="tab-btn" onclick="showPanel('files')">02 · Files</button>
+  <button class="tab-btn" onclick="showPanel('permissions')">03 · Permissions</button>
+  <button class="tab-btn" onclick="showPanel('pipes')">04 · Pipes & Redirects</button>
+  <button class="tab-btn" onclick="showPanel('packages')">05 · Packages</button>
+  <button class="tab-btn" onclick="showPanel('users')">06 · Users</button>
+  <button class="tab-btn" onclick="showPanel('quiz')">07 · Quiz</button>
+  <button class="tab-btn" onclick="showPanel('cheatsheet')">08 · Cheatsheet</button>
+</nav>
+
+<!-- PANEL: NAVIGATION -->
+<div id="panel-navigation" class="panel active">
+  <div class="section-title">Navigating the Filesystem</div>
+  <p class="section-desc">The Linux filesystem is a tree rooted at /. These are the essential commands for moving around and understanding where you are.</p>
+
+  <div class="cmd-grid">
+    <div class="cmd-card" onclick="runDemo('navigation', 0)">
+      <span class="cmd-tag">essential</span>
+      <div class="cmd-name">pwd</div>
+      <div class="cmd-desc">Print Working Directory — shows your current location in the filesystem.</div>
+      <div class="cmd-example">$ pwd → /home/user/projects</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('navigation', 1)">
+      <span class="cmd-tag">essential</span>
+      <div class="cmd-name">ls</div>
+      <div class="cmd-desc">List directory contents. Use flags like -la for a long, human-readable listing including hidden files.</div>
+      <div class="cmd-example">$ ls -la /var/log</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('navigation', 2)">
+      <span class="cmd-tag">essential</span>
+      <div class="cmd-name">cd</div>
+      <div class="cmd-desc">Change Directory. Use ~ for home, .. to go up, - to go back to previous directory.</div>
+      <div class="cmd-example">$ cd ~/Documents</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('navigation', 3)">
+      <span class="cmd-tag">useful</span>
+      <div class="cmd-name">find</div>
+      <div class="cmd-desc">Search for files and directories by name, type, size, modification time, and more.</div>
+      <div class="cmd-example">$ find . -name "*.log" -mtime -7</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('navigation', 4)">
+      <span class="cmd-tag">useful</span>
+      <div class="cmd-name">tree</div>
+      <div class="cmd-desc">Display directory contents as a tree structure. Great for visualizing project layout.</div>
+      <div class="cmd-example">$ tree -L 2 /etc</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('navigation', 5)">
+      <span class="cmd-tag">useful</span>
+      <div class="cmd-name">which / whereis</div>
+      <div class="cmd-desc">Find the location of a command's binary, source, and man page.</div>
+      <div class="cmd-example">$ which python3</div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:0.5rem; font-size:1rem;">Filesystem Structure</div>
+  <p class="section-desc" style="margin-bottom:1rem;">Click any command above to see a live demo below. Here's how a typical Linux filesystem looks:</p>
+
+  <div class="fs-tree">
+    <span class="fs-dir">/</span><br>
+    <div class="fs-indent">
+      <span class="fs-dir">bin/</span> <span style="color:var(--muted);font-size:0.65rem">— essential user binaries (ls, cp, mv…)</span><br>
+      <span class="fs-dir">etc/</span> <span style="color:var(--muted);font-size:0.65rem">— system config files</span><br>
+      <span class="fs-dir">home/</span> <span style="color:var(--muted);font-size:0.65rem">— user home directories</span><br>
+      <div class="fs-indent">
+        <span class="fs-dir">user/</span><br>
+        <div class="fs-indent">
+          <span class="fs-dir">Documents/</span><br>
+          <span class="fs-dir">Downloads/</span><br>
+          <span class="fs-file">.bashrc</span> <span style="color:var(--muted);font-size:0.65rem">— bash config</span><br>
+          <span class="fs-link">.bash_history</span> <span style="color:var(--muted);font-size:0.65rem">— command history</span><br>
+        </div>
+      </div>
+      <span class="fs-dir">var/</span> <span style="color:var(--muted);font-size:0.65rem">— variable data (logs, cache)</span><br>
+      <span class="fs-dir">usr/</span> <span style="color:var(--muted);font-size:0.65rem">— user programs and data</span><br>
+      <span class="fs-dir">proc/</span> <span style="color:var(--muted);font-size:0.65rem">— virtual FS for process info</span><br>
+      <span class="fs-dir">dev/</span> <span style="color:var(--muted);font-size:0.65rem">— device files</span><br>
+      <span class="fs-dir">tmp/</span> <span style="color:var(--muted);font-size:0.65rem">— temporary files (cleared on reboot)</span><br>
+    </div>
+  </div>
+
+  <div class="demo-terminal" id="demo-navigation">
+    <div class="demo-header">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span class="demo-title">demo — click a command card above to run</span>
+      <button class="play-btn" id="playBtn-navigation" onclick="replayDemo('navigation')">▶ Replay</button>
+    </div>
+    <div class="demo-body" id="demo-body-navigation">
+      <span style="color:var(--muted); font-size:0.72rem">// Click any command card above to see an animated demo here...</span>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL: FILES -->
+<div id="panel-files" class="panel">
+  <div class="section-title">File Management</div>
+  <p class="section-desc">Create, copy, move, rename, view, and delete files and directories. These commands form the backbone of daily Linux work.</p>
+
+  <div class="cmd-grid">
+    <div class="cmd-card" onclick="runDemo('files', 0)">
+      <span class="cmd-tag">create</span>
+      <div class="cmd-name">touch / mkdir</div>
+      <div class="cmd-desc">Create empty files or new directories. mkdir -p creates nested directories in one command.</div>
+      <div class="cmd-example">$ mkdir -p projects/web/src</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('files', 1)">
+      <span class="cmd-tag">view</span>
+      <div class="cmd-name">cat / less / head / tail</div>
+      <div class="cmd-desc">View file contents. Less is interactive, head/tail show first/last N lines. tail -f follows live updates.</div>
+      <div class="cmd-example">$ tail -f /var/log/syslog</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('files', 2)">
+      <span class="cmd-tag">copy/move</span>
+      <div class="cmd-name">cp / mv</div>
+      <div class="cmd-desc">Copy or move files and directories. Use -r for recursive directory operations.</div>
+      <div class="cmd-example">$ cp -r src/ backup/</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('files', 3)">
+      <span class="cmd-tag">delete</span>
+      <div class="cmd-name">rm / rmdir</div>
+      <div class="cmd-desc">Remove files or directories. rm -rf is powerful and irreversible — always double-check!</div>
+      <div class="cmd-example">$ rm -i *.tmp</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('files', 4)">
+      <span class="cmd-tag">search</span>
+      <div class="cmd-name">grep</div>
+      <div class="cmd-desc">Search for patterns in files using regular expressions. Use -r for recursive, -n for line numbers.</div>
+      <div class="cmd-example">$ grep -rn "error" /var/log/</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('files', 5)">
+      <span class="cmd-tag">archive</span>
+      <div class="cmd-name">tar / gzip</div>
+      <div class="cmd-desc">Create and extract archives. tar -czvf creates a compressed .tar.gz, -xzvf extracts it.</div>
+      <div class="cmd-example">$ tar -czvf backup.tar.gz ~/projects</div>
+    </div>
+  </div>
+
+  <div class="demo-terminal" id="demo-files">
+    <div class="demo-header">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span class="demo-title">demo — file operations</span>
+      <button class="play-btn" id="playBtn-files" onclick="replayDemo('files')">▶ Replay</button>
+    </div>
+    <div class="demo-body" id="demo-body-files">
+      <span style="color:var(--muted); font-size:0.72rem">// Click a command above to see a demo...</span>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL: PERMISSIONS -->
+<div id="panel-permissions" class="panel">
+  <div class="section-title">Understanding Permissions</div>
+  <p class="section-desc">Every file in Linux has permissions defining who can read, write, or execute it. Mastering chmod and chown is essential for system security.</p>
+
+  <p style="font-size:0.72rem; color:var(--muted); margin-bottom:1.5rem; line-height:1.8;">A typical permission string looks like: <span style="color:var(--green)">-rwxr-xr--</span> — broken down as file type + owner + group + others.</p>
+
+  <div class="perm-grid" id="permViz">
+    <div class="perm-cell">
+      <div class="perm-who">Owner</div>
+      <div class="perm-bits"><span class="perm-r">r</span><span class="perm-w">w</span><span class="perm-x">x</span></div>
+      <div class="perm-num">7</div>
+    </div>
+    <div class="perm-cell">
+      <div class="perm-who">Group</div>
+      <div class="perm-bits"><span class="perm-r">r</span><span class="perm-dash">-</span><span class="perm-x">x</span></div>
+      <div class="perm-num">5</div>
+    </div>
+    <div class="perm-cell">
+      <div class="perm-who">Others</div>
+      <div class="perm-bits"><span class="perm-r">r</span><span class="perm-dash">-</span><span class="perm-dash">-</span></div>
+      <div class="perm-num">4</div>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:1rem; margin: 1rem 0 2rem; flex-wrap: wrap;">
+    <div style="font-size:0.7rem; display:flex; align-items:center; gap:0.4rem;"><span class="perm-r" style="color:var(--green);">r</span><span style="color:var(--muted)">= read (4)</span></div>
+    <div style="font-size:0.7rem; display:flex; align-items:center; gap:0.4rem;"><span style="color:var(--amber);">w</span><span style="color:var(--muted)">= write (2)</span></div>
+    <div style="font-size:0.7rem; display:flex; align-items:center; gap:0.4rem;"><span style="color:var(--cyan);">x</span><span style="color:var(--muted)">= execute (1)</span></div>
+    <div style="font-size:0.7rem; display:flex; align-items:center; gap:0.4rem;"><span style="color:var(--border);">-</span><span style="color:var(--muted)">= no permission (0)</span></div>
+  </div>
+
+  <div class="cmd-grid" style="margin-bottom: 2rem;">
+    <div class="cmd-card" onclick="runDemo('permissions', 0)">
+      <span class="cmd-tag">permissions</span>
+      <div class="cmd-name">chmod</div>
+      <div class="cmd-desc">Change file mode/permissions. Use octal notation (755) or symbolic (u+x, g-w) notation.</div>
+      <div class="cmd-example">$ chmod 755 script.sh</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('permissions', 1)">
+      <span class="cmd-tag">ownership</span>
+      <div class="cmd-name">chown</div>
+      <div class="cmd-desc">Change file owner and group. Use -R for recursive changes on directories.</div>
+      <div class="cmd-example">$ chown -R user:group /var/www</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('permissions', 2)">
+      <span class="cmd-tag">inspect</span>
+      <div class="cmd-name">ls -la</div>
+      <div class="cmd-desc">List all files with full permission details, owner, group, size, and modification time.</div>
+      <div class="cmd-example">$ ls -la /etc/passwd</div>
+    </div>
+  </div>
+
+  <div class="demo-terminal" id="demo-permissions">
+    <div class="demo-header">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span class="demo-title">demo — permissions</span>
+      <button class="play-btn" id="playBtn-permissions" onclick="replayDemo('permissions')">▶ Replay</button>
+    </div>
+    <div class="demo-body" id="demo-body-permissions">
+      <span style="color:var(--muted); font-size:0.72rem">// Click a command above to see a demo...</span>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL: PIPES -->
+<div id="panel-pipes" class="panel">
+  <div class="section-title">Pipes, Redirects & Streams</div>
+  <p class="section-desc">One of Linux's most powerful ideas: composing small commands together using pipes and redirects. stdin, stdout, and stderr are the three standard streams.</p>
+
+  <div class="pipe-flow">
+    <div class="pipe-box">
+      <span class="pipe-label">source</span>
+      <span class="cmd">cat</span> <span class="arg">access.log</span>
+    </div>
+    <div class="pipe-arrow">|</div>
+    <div class="pipe-box">
+      <span class="pipe-label">filter</span>
+      <span class="cmd">grep</span> <span class="arg">"ERROR"</span>
+    </div>
+    <div class="pipe-arrow">|</div>
+    <div class="pipe-box">
+      <span class="pipe-label">sort</span>
+      <span class="cmd">sort</span>
+    </div>
+    <div class="pipe-arrow">|</div>
+    <div class="pipe-box">
+      <span class="pipe-label">count</span>
+      <span class="cmd">uniq</span> <span class="arg">-c</span>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-output">
+      <span class="pipe-label">output</span>
+      42 ERROR 500<br>
+      17 ERROR 404<br>
+      3 ERROR 403
+    </div>
+  </div>
+
+  <div class="cmd-grid" style="margin: 2rem 0;">
+    <div class="cmd-card" onclick="runDemo('pipes', 0)">
+      <span class="cmd-tag">pipe</span>
+      <div class="cmd-name">| (pipe)</div>
+      <div class="cmd-desc">Send stdout of one command to stdin of the next. Chain unlimited commands together.</div>
+      <div class="cmd-example">$ ps aux | grep nginx | wc -l</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('pipes', 1)">
+      <span class="cmd-tag">redirect</span>
+      <div class="cmd-name">&gt; / &gt;&gt;</div>
+      <div class="cmd-desc">&gt; overwrites a file with output. &gt;&gt; appends to it. Redirect stdout to save command results.</div>
+      <div class="cmd-example">$ echo "log entry" >> app.log</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('pipes', 2)">
+      <span class="cmd-tag">stderr</span>
+      <div class="cmd-name">2&gt; / 2&gt;&amp;1</div>
+      <div class="cmd-desc">Redirect stderr (file descriptor 2). 2&gt;&amp;1 merges stderr into stdout for combined logging.</div>
+      <div class="cmd-example">$ command 2>&1 | tee output.log</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('pipes', 3)">
+      <span class="cmd-tag">tools</span>
+      <div class="cmd-name">grep / sort / uniq / wc / awk</div>
+      <div class="cmd-desc">Text processing powerhouses. Filter, sort, deduplicate, count lines, and transform streams of data.</div>
+      <div class="cmd-example">$ cat data.csv | awk -F',' '{print $2}' | sort | uniq -c</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('pipes', 4)">
+      <span class="cmd-tag">tee</span>
+      <div class="cmd-name">tee</div>
+      <div class="cmd-desc">Read stdin and write to both stdout AND a file simultaneously. Perfect for logging while watching output.</div>
+      <div class="cmd-example">$ make build 2>&1 | tee build.log</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('pipes', 5)">
+      <span class="cmd-tag">heredoc</span>
+      <div class="cmd-name">&lt;&lt; EOF</div>
+      <div class="cmd-desc">Here-document: feed multi-line input directly into a command without a file. Useful in scripts.</div>
+      <div class="cmd-example">$ cat << EOF > config.txt</div>
+    </div>
+  </div>
+
+  <div class="demo-terminal" id="demo-pipes">
+    <div class="demo-header">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span class="demo-title">demo — pipes & redirection</span>
+      <button class="play-btn" id="playBtn-pipes" onclick="replayDemo('pipes')">▶ Replay</button>
+    </div>
+    <div class="demo-body" id="demo-body-pipes">
+      <span style="color:var(--muted); font-size:0.72rem">// Click a command above to see a demo...</span>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL: PACKAGES -->
+<div id="panel-packages" class="panel">
+  <div class="section-title">Package Management</div>
+  <p class="section-desc">Linux uses package managers to install, update, and remove software. Debian-based systems use apt, while RHEL/Fedora use dnf/yum.</p>
+
+  <div class="cmd-grid">
+    <div class="cmd-card" onclick="runDemo('packages', 0)">
+      <span class="cmd-tag">debian/ubuntu</span>
+      <div class="cmd-name">apt</div>
+      <div class="cmd-desc">Advanced Package Tool for Debian/Ubuntu. Install, remove, update, and search for packages.</div>
+      <div class="cmd-example">$ sudo apt install nginx</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('packages', 1)">
+      <span class="cmd-tag">rhel/fedora</span>
+      <div class="cmd-name">dnf / yum</div>
+      <div class="cmd-desc">Package manager for Red Hat-based distros. dnf is the modern replacement for yum.</div>
+      <div class="cmd-example">$ sudo dnf install htop</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('packages', 2)">
+      <span class="cmd-tag">services</span>
+      <div class="cmd-name">systemctl</div>
+      <div class="cmd-desc">Manage systemd services: start, stop, enable (auto-start), disable, and check status.</div>
+      <div class="cmd-example">$ sudo systemctl enable --now nginx</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('packages', 3)">
+      <span class="cmd-tag">logs</span>
+      <div class="cmd-name">journalctl</div>
+      <div class="cmd-desc">View and filter systemd journal logs. Use -u for a specific unit, -f to follow live logs.</div>
+      <div class="cmd-example">$ journalctl -u nginx -f --since "1h ago"</div>
+    </div>
+  </div>
+
+  <div class="demo-terminal" id="demo-packages">
+    <div class="demo-header">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span class="demo-title">demo — package & service management</span>
+      <button class="play-btn" id="playBtn-packages" onclick="replayDemo('packages')">▶ Replay</button>
+    </div>
+    <div class="demo-body" id="demo-body-packages">
+      <span style="color:var(--muted); font-size:0.72rem">// Click a command above to see a demo...</span>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL: USERS -->
+<div id="panel-users" class="panel">
+  <div class="section-title">User Management & SSH</div>
+  <p class="section-desc">Managing users, groups, and remote access via SSH is core to Linux system administration.</p>
+
+  <div class="cmd-grid">
+    <div class="cmd-card" onclick="runDemo('users', 0)">
+      <span class="cmd-tag">users</span>
+      <div class="cmd-name">useradd / usermod / userdel</div>
+      <div class="cmd-desc">Create, modify, and delete user accounts. Always use -m with useradd to create a home directory.</div>
+      <div class="cmd-example">$ sudo useradd -m -s /bin/bash alice</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('users', 1)">
+      <span class="cmd-tag">groups</span>
+      <div class="cmd-name">groups / groupadd</div>
+      <div class="cmd-desc">Manage groups. Add users to groups like sudo or docker to grant elevated permissions.</div>
+      <div class="cmd-example">$ sudo usermod -aG sudo alice</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('users', 2)">
+      <span class="cmd-tag">remote</span>
+      <div class="cmd-name">ssh</div>
+      <div class="cmd-desc">Securely connect to remote machines. Use key-based authentication instead of passwords for security.</div>
+      <div class="cmd-example">$ ssh -i ~/.ssh/id_rsa user@server</div>
+    </div>
+    <div class="cmd-card" onclick="runDemo('users', 3)">
+      <span class="cmd-tag">transfer</span>
+      <div class="cmd-name">scp / rsync</div>
+      <div class="cmd-desc">Copy files to/from remote systems. rsync is more efficient for large transfers — only syncs changes.</div>
+      <div class="cmd-example">$ rsync -avz ./src/ user@server:/var/www/</div>
+    </div>
+  </div>
+
+  <div class="demo-terminal" id="demo-users">
+    <div class="demo-header">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span class="demo-title">demo — users & SSH</span>
+      <button class="play-btn" id="playBtn-users" onclick="replayDemo('users')">▶ Replay</button>
+    </div>
+    <div class="demo-body" id="demo-body-users">
+      <span style="color:var(--muted); font-size:0.72rem">// Click a command above to see a demo...</span>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL: QUIZ -->
+<div id="panel-quiz" class="panel">
+  <div class="section-title">Test Your Knowledge</div>
+  <p class="section-desc">5 questions drawn from the Linux Commands series. Click an answer to see feedback.</p>
+
+  <div style="display:flex; align-items:baseline; gap:1rem; margin-bottom:2rem;">
+    <div class="quiz-score" id="score-display">0 / 5</div>
+    <div style="font-size:0.7rem; color:var(--muted)">Score</div>
+    <div class="progress-bar" style="flex:1; margin:0;">
+      <div class="progress-fill" id="score-bar" style="--w: 0%; width: 0%;"></div>
+    </div>
+  </div>
+
+  <div id="quizContainer"></div>
+</div>
+
+<!-- PANEL: CHEATSHEET -->
+<div id="panel-cheatsheet" class="panel">
+  <div class="section-title">Quick Reference Cheatsheet</div>
+  <p class="section-desc">All essential commands from the series at a glance. Use Ctrl+F to search.</p>
+
+  <div style="overflow-x:auto;">
+    <table class="cheat-table">
+      <thead>
+        <tr>
+          <th>Command</th>
+          <th>Description</th>
+          <th>Common Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>pwd</td><td>Print current working directory</td><td>pwd</td></tr>
+        <tr><td>ls</td><td>List directory contents</td><td>ls -la</td></tr>
+        <tr><td>cd</td><td>Change directory</td><td>cd ~/Documents</td></tr>
+        <tr><td>mkdir</td><td>Make directory</td><td>mkdir -p a/b/c</td></tr>
+        <tr><td>touch</td><td>Create empty file / update timestamp</td><td>touch file.txt</td></tr>
+        <tr><td>cat</td><td>Concatenate and display file contents</td><td>cat /etc/hosts</td></tr>
+        <tr><td>less</td><td>View file with pagination</td><td>less /var/log/syslog</td></tr>
+        <tr><td>head / tail</td><td>Show first/last N lines of a file</td><td>tail -n 20 app.log</td></tr>
+        <tr><td>cp</td><td>Copy files or directories</td><td>cp -r src/ dest/</td></tr>
+        <tr><td>mv</td><td>Move or rename files</td><td>mv old.txt new.txt</td></tr>
+        <tr><td>rm</td><td>Remove files or directories</td><td>rm -rf /tmp/cache</td></tr>
+        <tr><td>grep</td><td>Search text patterns in files</td><td>grep -rn "TODO" ./src</td></tr>
+        <tr><td>find</td><td>Search for files/directories</td><td>find / -name "*.conf"</td></tr>
+        <tr><td>chmod</td><td>Change file permissions</td><td>chmod 755 script.sh</td></tr>
+        <tr><td>chown</td><td>Change file owner/group</td><td>chown user:group file</td></tr>
+        <tr><td>sudo</td><td>Run command as superuser</td><td>sudo apt update</td></tr>
+        <tr><td>apt</td><td>Debian/Ubuntu package manager</td><td>sudo apt install vim</td></tr>
+        <tr><td>dnf</td><td>Fedora/RHEL package manager</td><td>sudo dnf install git</td></tr>
+        <tr><td>systemctl</td><td>Manage systemd services</td><td>systemctl status nginx</td></tr>
+        <tr><td>journalctl</td><td>View systemd journal logs</td><td>journalctl -u sshd -f</td></tr>
+        <tr><td>ssh</td><td>Secure Shell remote login</td><td>ssh user@192.168.1.10</td></tr>
+        <tr><td>scp</td><td>Secure copy over SSH</td><td>scp file.txt user@host:~/</td></tr>
+        <tr><td>rsync</td><td>Sync files/directories efficiently</td><td>rsync -avz src/ dest/</td></tr>
+        <tr><td>ps</td><td>Show running processes</td><td>ps aux | grep python</td></tr>
+        <tr><td>top / htop</td><td>Interactive process monitor</td><td>htop</td></tr>
+        <tr><td>kill</td><td>Send signals to processes</td><td>kill -9 &lt;PID&gt;</td></tr>
+        <tr><td>df / du</td><td>Disk space usage</td><td>df -h / du -sh *</td></tr>
+        <tr><td>history</td><td>Command history (!! = last cmd)</td><td>history | grep apt</td></tr>
+        <tr><td>alias</td><td>Create command shortcuts</td><td>alias ll='ls -la'</td></tr>
+        <tr><td>export</td><td>Set environment variables</td><td>export PATH=$PATH:~/bin</td></tr>
+        <tr><td>echo</td><td>Print text or variable values</td><td>echo $HOME</td></tr>
+        <tr><td>tar</td><td>Archive files</td><td>tar -czvf out.tar.gz dir/</td></tr>
+        <tr><td>curl</td><td>Transfer data from URLs</td><td>curl -O https://example.com/f</td></tr>
+        <tr><td>wget</td><td>Download files from the web</td><td>wget https://example.com/file</td></tr>
+        <tr><td>man</td><td>View manual page for a command</td><td>man chmod</td></tr>
+        <tr><td>--help</td><td>Show command usage info</td><td>ls --help</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top: 3rem;">
+    <div class="section-title" style="font-size:1rem; margin-bottom:1rem;">Source Videos</div>
+    <div class="video-links">
+      <a href="https://youtu.be/EC018ZtNXaA" target="_blank" class="video-card">
+        <span class="video-num">01</span>
+        <div class="video-label">YouTube Series</div>
+        <div class="video-title">Linux Commands for Beginners — Introduction & Filesystem Navigation</div>
+        <div class="video-meta">learnlinux.tv · Part of a 20-episode series</div>
+      </a>
+      <a href="https://youtu.be/68Yj7lYBKAc" target="_blank" class="video-card">
+        <span class="video-num">02</span>
+        <div class="video-label">YouTube Series</div>
+        <div class="video-title">Linux Commands for Beginners — File Editing, Permissions & Package Management</div>
+        <div class="video-meta">learnlinux.tv · Advanced topics module</div>
+      </a>
+      <a href="https://youtu.be/CLh2ACdXNbc" target="_blank" class="video-card">
+        <span class="video-num">03</span>
+        <div class="video-label">YouTube Series</div>
+        <div class="video-title">Linux Commands for Beginners — SSH, Users & Output Redirection</div>
+        <div class="video-meta">learnlinux.tv · Remote management & scripting</div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CURSOR ─────────────────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursorRing');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+  setTimeout(() => {
+    cursorRing.style.left = e.clientX + 'px';
+    cursorRing.style.top = e.clientY + 'px';
+  }, 80);
+});
+document.querySelectorAll('button, a, .cmd-card').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.transform = 'translate(-50%,-50%) scale(2)';
+    cursorRing.style.opacity = '0';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.transform = 'translate(-50%,-50%) scale(1)';
+    cursorRing.style.opacity = '1';
+  });
+});
+
+// ─── TABS ────────────────────────────────────────────────────────────
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ─── TYPING ANIMATION ────────────────────────────────────────────────
+let typingActive = {};
+
+function clearTyping(id) {
+  if (typingActive[id]) {
+    clearTimeout(typingActive[id]);
+    typingActive[id] = null;
+  }
+}
+
+function typeLines(containerId, lines, delay = 0) {
+  const el = document.getElementById(containerId);
+  clearTyping(containerId);
+  el.innerHTML = '';
+  
+  let lineIndex = 0;
+  let charIndex = 0;
+  let currentLineEl = null;
+
+  function next() {
+    if (lineIndex >= lines.length) return;
+    const line = lines[lineIndex];
+    
+    if (charIndex === 0) {
+      currentLineEl = document.createElement('div');
+      currentLineEl.style.minHeight = '1.6em';
+      el.appendChild(currentLineEl);
+      
+      // Instant output lines (not commands)
+      if (line.type === 'output') {
+        currentLineEl.innerHTML = `<span class="line-out ${line.cls || ''}">${line.text}</span>`;
+        lineIndex++;
+        charIndex = 0;
+        typingActive[containerId] = setTimeout(next, line.pause || 80);
+        return;
+      }
+      if (line.type === 'blank') {
+        currentLineEl.innerHTML = '&nbsp;';
+        lineIndex++;
+        charIndex = 0;
+        typingActive[containerId] = setTimeout(next, 150);
+        return;
+      }
+    }
+
+    // Type character by character for prompt lines
+    if (charIndex <= line.text.length) {
+      const typed = line.text.substring(0, charIndex);
+      currentLineEl.innerHTML = `<span class="line-prompt">user@linux:~$ </span><span class="line-cmd">${typed}</span><span class="blink-cursor"></span>`;
+      charIndex++;
+      typingActive[containerId] = setTimeout(next, 40 + Math.random() * 30);
+    } else {
+      currentLineEl.innerHTML = `<span class="line-prompt">user@linux:~$ </span><span class="line-cmd">${line.text}</span>`;
+      lineIndex++;
+      charIndex = 0;
+      typingActive[containerId] = setTimeout(next, line.pause || 400);
+    }
+  }
+
+  typingActive[containerId] = setTimeout(next, delay);
+}
+
+// ─── DEMO DATA ────────────────────────────────────────────────────────
+const demos = {
+  navigation: [
+    [
+      { type: 'cmd', text: 'pwd' },
+      { type: 'output', text: '/home/user', cls: 'success' },
+      { type: 'blank' },
+      { type: 'cmd', text: 'echo "Current directory: $(pwd)"' },
+      { type: 'output', text: 'Current directory: /home/user', cls: 'info' }
+    ],
+    [
+      { type: 'cmd', text: 'ls -la /etc' },
+      { type: 'output', text: 'total 1404' },
+      { type: 'output', text: 'drwxr-xr-x 131 root root  12288 Feb 19 09:00 .', cls: 'info' },
+      { type: 'output', text: '-rw-r--r--   1 root root    304 Jan  1 00:00 hostname', cls: 'success' },
+      { type: 'output', text: '-rw-r--r--   1 root root   1735 Dec 15 12:00 passwd', cls: 'success' },
+      { type: 'output', text: 'lrwxrwxrwx   1 root root     13 Nov  1 00:00 ssl -> /etc/pki/tls', cls:'warn' }
+    ],
+    [
+      { type: 'cmd', text: 'cd /var/log' },
+      { type: 'output', text: '(moved to /var/log)', cls: 'info' },
+      { type: 'cmd', text: 'cd ..' },
+      { type: 'output', text: '(moved to /var)', cls: 'info' },
+      { type: 'cmd', text: 'cd -' },
+      { type: 'output', text: '/var/log', cls: 'success' },
+      { type: 'cmd', text: 'cd ~' },
+      { type: 'output', text: '(back to /home/user)', cls: 'success' }
+    ],
+    [
+      { type: 'cmd', text: 'find . -name "*.log" -mtime -7' },
+      { type: 'output', text: './var/log/auth.log', cls: 'success' },
+      { type: 'output', text: './var/log/syslog', cls: 'success' },
+      { type: 'output', text: './home/user/app/error.log', cls: 'warn' },
+      { type: 'blank' },
+      { type: 'cmd', text: 'find /etc -type f -size +10k' },
+      { type: 'output', text: '/etc/ssl/certs/ca-certificates.crt', cls: 'info' }
+    ],
+    [
+      { type: 'cmd', text: 'tree -L 2 ~' },
+      { type: 'output', text: '/home/user', cls: 'info' },
+      { type: 'output', text: '├── Documents' },
+      { type: 'output', text: '│   └── notes.txt' },
+      { type: 'output', text: '├── Downloads' },
+      { type: 'output', text: '├── .bashrc', cls: 'warn' },
+      { type: 'output', text: '└── .ssh', cls: 'warn' },
+      { type: 'output', text: '4 directories, 2 files', cls: 'success' }
+    ],
+    [
+      { type: 'cmd', text: 'which python3' },
+      { type: 'output', text: '/usr/bin/python3', cls: 'success' },
+      { type: 'cmd', text: 'whereis bash' },
+      { type: 'output', text: 'bash: /bin/bash /etc/bash.bashrc /usr/share/man/man1/bash.1.gz', cls: 'info' }
+    ]
+  ],
+  files: [
+    [
+      { type: 'cmd', text: 'mkdir -p projects/web/src' },
+      { type: 'output', text: '(created nested directories)', cls: 'success' },
+      { type: 'cmd', text: 'touch projects/web/src/index.html' },
+      { type: 'output', text: '(file created)', cls: 'success' },
+      { type: 'cmd', text: 'ls projects/web/src/' },
+      { type: 'output', text: 'index.html', cls: 'info' }
+    ],
+    [
+      { type: 'cmd', text: 'cat /etc/os-release' },
+      { type: 'output', text: 'NAME="Ubuntu"', cls: 'info' },
+      { type: 'output', text: 'VERSION="22.04.3 LTS"', cls: 'info' },
+      { type: 'blank' },
+      { type: 'cmd', text: 'tail -f /var/log/syslog' },
+      { type: 'output', text: 'Feb 19 09:01:33 kernel: [1234.5] eth0: link up', cls: 'success' },
+      { type: 'output', text: 'Feb 19 09:01:45 systemd: Started nginx.service', cls: 'success' },
+      { type: 'output', text: '(watching for new lines...)', cls: 'warn' }
+    ],
+    [
+      { type: 'cmd', text: 'cp -r ~/projects ~/projects_backup' },
+      { type: 'output', text: '(recursive copy complete)', cls: 'success' },
+      { type: 'cmd', text: 'mv report_draft.txt report_final.txt' },
+      { type: 'output', text: '(renamed successfully)', cls: 'success' },
+      { type: 'cmd', text: 'ls *.txt' },
+      { type: 'output', text: 'report_final.txt', cls: 'info' }
+    ],
+    [
+      { type: 'cmd', text: 'rm -i *.tmp' },
+      { type: 'output', text: 'remove temp1.tmp? y', cls: 'warn' },
+      { type: 'output', text: 'remove temp2.tmp? y', cls: 'warn' },
+      { type: 'output', text: '(2 files removed)', cls: 'success' },
+      { type: 'blank' },
+      { type: 'cmd', text: 'rmdir empty_folder/' },
+      { type: 'output', text: '(directory removed)', cls: 'success' }
+    ],
+    [
+      { type: 'cmd', text: 'grep -rn "ERROR" /var/log/ 2>/dev/null' },
+      { type: 'output', text: '/var/log/syslog:142: ERROR connection refused', cls: 'warn' },
+      { type: 'output', text: '/var/log/auth.log:89: ERROR invalid password', cls: 'warn' },
+      { type: 'blank' },
+      { type: 'cmd', text: 'grep -c "ERROR" /var/log/syslog' },
+      { type: 'output', text: '23', cls: 'info' }
+    ],
+    [
+      { type: 'cmd', text: 'tar -czvf backup.tar.gz ~/projects' },
+      { type: 'output', text: 'projects/' },
+      { type: 'output', text: 'projects/web/src/index.html', cls: 'info' },
+      { type: 'output', text: '(archive created: 2.3M)', cls: 'success' },
+      { type: 'cmd', text: 'tar -xzvf backup.tar.gz -C /tmp/' },
+      { type: 'output', text: '(extracted to /tmp/)', cls: 'success' }
+    ]
+  ],
+  permissions: [
+    [
+      { type: 'cmd', text: 'chmod 755 deploy.sh' },
+      { type: 'output', text: '(permissions set: rwxr-xr-x)', cls: 'success' },
+      { type: 'cmd', text: 'chmod +x *.sh' },
+      { type: 'output', text: '(made all .sh files executable)', cls: 'success' },
+      { type: 'cmd', text: 'chmod go-w sensitive.conf' },
+      { type: 'output', text: '(removed group & other write)', cls: 'warn' }
+    ],
+    [
+      { type: 'cmd', text: 'chown -R www-data:www-data /var/www/html' },
+      { type: 'output', text: '(ownership changed recursively)', cls: 'success' },
+      { type: 'cmd', text: 'ls -la /var/www/html' },
+      { type: 'output', text: '-rw-r--r-- 1 www-data www-data 2048 Feb 19 index.html', cls: 'info' }
+    ],
+    [
+      { type: 'cmd', text: 'ls -la /etc/passwd /etc/shadow' },
+      { type: 'output', text: '-rw-r--r-- 1 root root   1872 /etc/passwd', cls: 'info' },
+      { type: 'output', text: '-rw-r----- 1 root shadow  983 /etc/shadow', cls: 'warn' },
+      { type: 'blank' },
+      { type: 'cmd', text: 'stat deploy.sh' },
+      { type: 'output', text: 'Access: (0755/-rwxr-xr-x)  Uid: ( 1000/  user)', cls: 'success' }
+    ]
+  ],
+  pipes: [
+    [
+      { type: 'cmd', text: 'ps aux | grep nginx | wc -l' },
+      { type: 'output', text: '3', cls: 'success' },
+      { type: 'blank' },
+      { type: 'cmd', text: 'cat /etc/passwd | cut -d: -f1 | sort | head -5' },
+      { type: 'output', text: 'alice', cls: 'info' },
+      { type: 'output', text: 'bob', cls: 'info' },
+      { type: 'output', text: 'daemon', cls: 'info' },
+      { type: 'output', text: 'nobody', cls: 'info' },
+      { type: 'output', text: 'root', cls: 'info' }
+    ],
+    [
+      { type: 'cmd', text: 'echo "Hello, Linux!" > greeting.txt' },
+      { type: 'output', text: '(written to greeting.txt)', cls: 'success' },
+      { type: 'cmd', text: 'echo "Line 2" >> greeting.txt' },
+      { type: 'output', text: '(appended to greeting.txt)', cls: 'success' },
+      { type: 'cmd', text: 'cat greeting.txt' },
+      { type: 'output', text: 'Hello, Linux!', cls: 'info' },
+      { type: 'output', text: 'Line 2', cls: 'info' }
+    ],
+    [
+      { type: 'cmd', text: 'command-that-fails 2>/dev/null' },
+      { type: 'output', text: '(errors silenced)', cls: 'warn' },
+      { type: 'cmd', text: 'make build 2>&1 | tee build.log' },
+      { type: 'output', text: 'Compiling main.c... OK', cls: 'success' },
+      { type: 'output', text: 'Linking... OK', cls: 'success' },
+      { type: 'output', text: '(stdout + stderr saved to build.log)', cls: 'info' }
+    ],
+    [
+      { type: 'cmd', text: "cat access.log | awk '{print $9}' | sort | uniq -c | sort -rn" },
+      { type: 'output', text: '   8432 200', cls: 'success' },
+      { type: 'output', text: '    342 404', cls: 'warn' },
+      { type: 'output', text: '     89 500', cls: 'warn' },
+      { type: 'output', text: '     12 403', cls: 'warn' }
+    ],
+    [
+      { type: 'cmd', text: 'df -h | tee disk_report.txt | grep "/dev/sda"' },
+      { type: 'output', text: '/dev/sda1  50G   32G  15G  69% /', cls: 'warn' },
+      { type: 'output', text: '(also saved full output to disk_report.txt)', cls: 'info' }
+    ],
+    [
+      { type: 'cmd', text: 'cat << EOF > config.env' },
+      { type: 'output', text: '> DB_HOST=localhost', cls: 'info' },
+      { type: 'output', text: '> DB_PORT=5432', cls: 'info' },
+      { type: 'output', text: '> EOF', cls: 'info' },
+      { type: 'output', text: '(heredoc written to config.env)', cls: 'success' }
+    ]
+  ],
+  packages: [
+    [
+      { type: 'cmd', text: 'sudo apt update && sudo apt upgrade -y' },
+      { type: 'output', text: 'Hit:1 http://archive.ubuntu.com/ubuntu jammy InRelease', cls: 'info' },
+      { type: 'output', text: '45 packages can be upgraded.', cls: 'warn' },
+      { type: 'cmd', text: 'sudo apt install nginx git htop' },
+      { type: 'output', text: 'Setting up nginx (1.18.0)... done', cls: 'success' },
+      { type: 'output', text: 'Setting up git (2.34.1)... done', cls: 'success' }
+    ],
+    [
+      { type: 'cmd', text: 'sudo dnf update' },
+      { type: 'output', text: 'Dependencies resolved. Nothing to do.', cls: 'success' },
+      { type: 'cmd', text: 'sudo dnf install htop vim curl' },
+      { type: 'output', text: 'Installed: htop-3.2.1.x86_64', cls: 'success' },
+      { type: 'output', text: 'Installed: vim-9.0.0000-1.x86_64', cls: 'success' }
+    ],
+    [
+      { type: 'cmd', text: 'sudo systemctl enable --now nginx' },
+      { type: 'output', text: 'Created symlink /etc/systemd/system/...nginx.service', cls: 'info' },
+      { type: 'cmd', text: 'systemctl status nginx' },
+      { type: 'output', text: '● nginx.service - A high performance web server', cls: 'info' },
+      { type: 'output', text: '   Active: active (running) since Tue 2024-02-19', cls: 'success' }
+    ],
+    [
+      { type: 'cmd', text: 'journalctl -u nginx -f --since "30min ago"' },
+      { type: 'output', text: 'Feb 19 09:00:01 nginx: start worker process 1234', cls: 'info' },
+      { type: 'output', text: 'Feb 19 09:01:05 nginx: 200 GET /index.html', cls: 'success' },
+      { type: 'output', text: 'Feb 19 09:02:11 nginx: 404 GET /missing.html', cls: 'warn' }
+    ]
+  ],
+  users: [
+    [
+      { type: 'cmd', text: 'sudo useradd -m -s /bin/bash -c "Alice Smith" alice' },
+      { type: 'output', text: '(user alice created with home dir)', cls: 'success' },
+      { type: 'cmd', text: 'sudo passwd alice' },
+      { type: 'output', text: 'New password: ********', cls: 'warn' },
+      { type: 'output', text: 'passwd: password updated successfully', cls: 'success' }
+    ],
+    [
+      { type: 'cmd', text: 'sudo usermod -aG sudo alice' },
+      { type: 'output', text: '(alice added to sudo group)', cls: 'success' },
+      { type: 'cmd', text: 'groups alice' },
+      { type: 'output', text: 'alice : alice sudo docker', cls: 'info' }
+    ],
+    [
+      { type: 'cmd', text: 'ssh-keygen -t ed25519 -C "alice@work"' },
+      { type: 'output', text: 'Generating public/private ed25519 key pair.', cls: 'info' },
+      { type: 'output', text: 'Your key fingerprint is: SHA256:abc123...', cls: 'success' },
+      { type: 'cmd', text: 'ssh-copy-id alice@192.168.1.50' },
+      { type: 'output', text: 'Number of key(s) added: 1', cls: 'success' },
+      { type: 'cmd', text: 'ssh alice@192.168.1.50' },
+      { type: 'output', text: 'Welcome to Ubuntu 22.04 LTS', cls: 'success' }
+    ],
+    [
+      { type: 'cmd', text: 'rsync -avz --progress ./website/ alice@server:/var/www/html/' },
+      { type: 'output', text: 'sending incremental file list', cls: 'info' },
+      { type: 'output', text: 'index.html               2,048 100%  1.95MB/s', cls: 'success' },
+      { type: 'output', text: 'style.css               15,234 100%  4.82MB/s', cls: 'success' },
+      { type: 'output', text: 'sent 18,450 bytes total', cls: 'info' }
+    ]
+  ]
+};
+
+let currentDemoPanel = {};
+
+function runDemo(panel, idx) {
+  // Highlight active card
+  const cards = document.querySelectorAll(`#panel-${panel} .cmd-card`);
+  cards.forEach((c, i) => c.classList.toggle('active', i === idx));
+
+  currentDemoPanel[panel] = idx;
+  typeLines(`demo-body-${panel}`, demos[panel][idx]);
+}
+
+function replayDemo(panel) {
+  const idx = currentDemoPanel[panel] || 0;
+  typeLines(`demo-body-${panel}`, demos[panel][idx]);
+}
+
+// ─── HERO TERMINAL ───────────────────────────────────────────────────
+const heroLines = [
+  { type: 'cmd', text: 'uname -a' },
+  { type: 'output', text: 'Linux ubuntu 5.15.0-91-generic #101-Ubuntu SMP x86_64 GNU/Linux', cls: 'info', pause: 300 },
+  { type: 'blank' },
+  { type: 'cmd', text: 'echo "Welcome to Linux Commands!"' },
+  { type: 'output', text: 'Welcome to Linux Commands!', cls: 'success', pause: 400 },
+  { type: 'blank' },
+  { type: 'cmd', text: 'ls ~/tutorials/' },
+  { type: 'output', text: '01-navigation/  02-files/  03-permissions/  04-pipes/  05-packages/', cls: 'info', pause: 300 },
+  { type: 'blank' },
+  { type: 'cmd', text: 'cat .motd' },
+  { type: 'output', text: '  ██╗     ██╗███╗   ██╗██╗   ██╗██╗  ██╗', cls: 'success', pause: 60 },
+  { type: 'output', text: '  ██║     ██║████╗  ██║██║   ██║╚██╗██╔╝', cls: 'success', pause: 60 },
+  { type: 'output', text: '  ██║     ██║██╔██╗ ██║██║   ██║ ╚███╔╝ ', cls: 'success', pause: 60 },
+  { type: 'output', text: '  ██║     ██║██║╚██╗██║██║   ██║ ██╔██╗ ', cls: 'success', pause: 60 },
+  { type: 'output', text: '  ███████╗██║██║ ╚████║╚██████╔╝██╔╝ ██╗', cls: 'success', pause: 60 },
+  { type: 'output', text: '  ╚══════╝╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝', cls: 'success', pause: 400 },
+  { type: 'blank' },
+];
+
+window.addEventListener('load', () => {
+  typeLines('heroTerminal', heroLines, 800);
+  initQuiz();
+});
+
+// ─── QUIZ ─────────────────────────────────────────────────────────────
+const questions = [
+  {
+    q: 'Which command shows all files including hidden ones, with permissions and sizes?',
+    options: ['ls -la', 'show -all', 'dir /a', 'ls --show-hidden'],
+    answer: 0,
+    feedback: 'ls -la combines the -l (long format) and -a (all files including hidden) flags. Hidden files start with a dot, like .bashrc.'
+  },
+  {
+    q: 'How would you make a file executable for the owner only?',
+    options: ['chmod u+x file', 'chmod 777 file', 'chown +x file', 'exec file'],
+    answer: 0,
+    feedback: 'chmod u+x adds (+) execute (x) permission to the user/owner (u). chmod 777 gives everyone full permissions — usually too permissive.'
+  },
+  {
+    q: 'What does the pipe operator | do?',
+    options: ['Sends stdout of one command to stdin of the next', 'Creates a new file', 'Runs commands in parallel', 'Appends output to a file'],
+    answer: 0,
+    feedback: 'The pipe | is one of Unix\'s most powerful ideas. It connects stdout → stdin, letting you chain commands: cat file | grep error | wc -l'
+  },
+  {
+    q: 'Which command installs software on Ubuntu/Debian systems?',
+    options: ['sudo apt install', 'sudo yum install', 'sudo brew install', 'sudo pkg add'],
+    answer: 0,
+    feedback: 'apt is the package manager for Debian-based distributions (Ubuntu, Debian, Mint). RHEL/Fedora uses dnf, macOS uses brew, FreeBSD uses pkg.'
+  },
+  {
+    q: 'How do you follow a log file in real-time as it\'s written?',
+    options: ['tail -f /var/log/syslog', 'watch /var/log/syslog', 'cat -follow /var/log/syslog', 'read -rt /var/log/syslog'],
+    answer: 0,
+    feedback: 'tail -f (follow) keeps the file open and prints new lines as they\'re appended. Essential for monitoring logs in real time. Press Ctrl+C to stop.'
+  }
+];
+
+let score = 0;
+let answered = new Set();
+
+function initQuiz() {
+  const container = document.getElementById('quizContainer');
+  container.innerHTML = '';
+  score = 0;
+  answered.clear();
+  updateScore();
+
+  questions.forEach((q, qi) => {
+    const card = document.createElement('div');
+    card.className = 'quiz-card';
+    card.id = `q-${qi}`;
+    card.innerHTML = `
+      <div class="quiz-q"><span style="color:var(--amber)">Q${qi+1}.</span> ${q.q}</div>
+      <div class="quiz-options">
+        ${q.options.map((o, oi) => `<button class="quiz-opt" onclick="answerQ(${qi}, ${oi})">${o}</button>`).join('')}
+      </div>
+      <div class="quiz-feedback" id="fb-${qi}">💡 ${q.feedback}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function answerQ(qi, oi) {
+  if (answered.has(qi)) return;
+  answered.add(qi);
+
+  const q = questions[qi];
+  const opts = document.querySelectorAll(`#q-${qi} .quiz-opt`);
+  opts.forEach((o, i) => {
+    o.disabled = true;
+    if (i === q.answer) o.classList.add('correct');
+    else if (i === oi) o.classList.add('wrong');
+  });
+
+  if (oi === q.answer) score++;
+  updateScore();
+
+  const fb = document.getElementById(`fb-${qi}`);
+  fb.style.display = 'block';
+  fb.style.borderLeftColor = oi === q.answer ? 'var(--green)' : 'var(--red)';
+}
+
+function updateScore() {
+  document.getElementById('score-display').textContent = `${score} / ${questions.length}`;
+  const pct = (score / questions.length * 100) + '%';
+  document.getElementById('score-bar').style.width = pct;
+}
+</script>
+</body>
+</html>
